@@ -27,17 +27,47 @@
 
                 <input type="submit" name="button1" value="All Movies"/>
                 <input type="submit" name="button2" value="All Series"/>
-                <input type="submit" name="button3" value="All Actors"/>
+                <input type="submit" name="button3" value="All People"/>
             </form>
         </div>
 
+        <div class = "container">
+            <b>Search by minimum rating:</b>
+        </div>
 
         <div class = "container">
     
             <form id="ratingLimitForm" method="post" action="">
                 <div class="input-group mb-3">
                     <input type="text" class="form-control" placeholder="Enter minimum rating" name="inputRating" id="inputRating">
-                    <button class="btn btn-outline-secondary" type="submit" name="submitted" id="button-addon2">Query</button>
+                    <button class="btn btn-outline-secondary" type="submit" name="submitted" id="button-addon2">Search</button>
+                </div>
+            </form>
+        </div>
+
+        <div class = "container">
+            <b>Search a User's Likes:</b>
+        </div>
+
+        <div class = "container">
+    
+            <form id="userLikesForm" method="post" action="">
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" placeholder="Enter User Email" name="userID" id="userID">
+                    <button class="btn btn-outline-secondary" type="submit" name="email_submitted" id="button-addon2">Enter</button>
+                </div>
+            </form>
+        </div>
+        <div class = "container">
+            <b>Add a New Like:</b>
+        </div>
+        <div class = "container">
+    
+            <form id="newLikeForm" method="post" action="">
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" placeholder="Enter User Email" name="newLikeUID" id="newLikeUID">
+                    <input type="text" class="form-control" placeholder="Enter Motion Picture ID" name="newLikeMPID" id="newLikeMPID">
+                    <button class="btn btn-outline-secondary" type="submit" name="newLike_submitted" id="button-addon2">Enter</button>
                 </div>
             </form>
         </div>
@@ -208,7 +238,63 @@
                 {
                     $ratingLimit = $_POST["inputRating"]; 
 
-                    echo("You clicked button two!");
+                    echo "<table class='table table-md table-bordered'>";
+                    echo "<thead class='thead-dark' style='text-align: center'>";
+                    echo "<tr><th class='col-md-2'>Name</th><th class='col-md-2'>Rating</th></tr></thead>";
+
+                    class TableRows extends RecursiveIteratorIterator {
+                        function __construct($it) {
+                            parent::__construct($it, self::LEAVES_ONLY);
+                        }
+
+                        function current() {
+                            // return "<td style='width: 30px; border: 1px solid black;'>" . parent::current(). "</td>";
+                            return "<td style='text-align:center'>" . parent::current(). "</td>";
+                        }
+
+                        function beginChildren() {
+                            echo "<tr>";
+                        }
+
+                        function endChildren() {
+                            echo "</tr>" . "\n";
+                        }
+                    }
+
+                    $servername = "localhost";
+                    $username = "root";
+                    $password = "";
+                    $dbname = "pa1.2";
+
+                    try {
+                        $conn = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
+                        $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+                        // SQL
+                        $stmt = $conn->prepare("SELECT name,rating FROM motion_picture where rating>=$ratingLimit");
+                        $stmt->execute();
+
+                        // set the resulting array to associative
+                        $stmt->setFetchMode(PDO::FETCH_ASSOC);
+                        foreach(new TableRows(new RecursiveArrayIterator($stmt->fetchAll())) as $k=>$v) {
+                            echo $v;
+                        }
+                    }
+                    catch(PDOException $e) {
+                        echo "Error: " . $e->getMessage();
+                    }
+                    $conn = null;
+                    echo "</table>";
+                }
+                else
+                {
+                    $ratingLimit = 0;
+                }
+
+
+                if(isset($_POST['email_submitted']))
+                {
+                    $userID = $_POST["userID"]; 
 
                     echo "<table class='table table-md table-bordered'>";
                     echo "<thead class='thead-dark' style='text-align: center'>";
@@ -243,7 +329,7 @@
                         $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
                         // SQL
-                        $stmt = $conn->prepare("SELECT name, rating FROM motion_picture where rating>=$ratingLimit");
+                        $stmt = $conn->prepare("SELECT name,rating FROM motion_picture INNER JOIN Likes where uemail='$userID' and Likes.mpid=motion_picture.id");
                         $stmt->execute();
 
                         // set the resulting array to associative
@@ -260,8 +346,72 @@
                 }
                 else
                 {
-                    $ratingLimit = 0;
+                    $userID = 0;
                 }
+
+                if(isset($_POST['newLike_submitted']))
+                {
+                    $newLikeUID = $_POST["newLikeUID"]; 
+                    $newLikeMPID = $_POST["newLikeMPID"]; 
+
+                    echo $newLikeUID;
+
+                    echo "<table class='table table-md table-bordered'>";
+                    echo "<thead class='thead-dark' style='text-align: center'>";
+                    echo "<tr><th class='col-md-2'>User</th><th class='col-md-2'>Name</th></tr></thead>";
+
+                    class TableRows extends RecursiveIteratorIterator {
+                        function __construct($it) {
+                            parent::__construct($it, self::LEAVES_ONLY);
+                        }
+
+                        function current() {
+                            // return "<td style='width: 30px; border: 1px solid black;'>" . parent::current(). "</td>";
+                            return "<td style='text-align:center'>" . parent::current(). "</td>";
+                        }
+
+                        function beginChildren() {
+                            echo "<tr>";
+                        }
+
+                        function endChildren() {
+                            echo "</tr>" . "\n";
+                        }
+                    }
+
+                    $servername = "localhost";
+                    $username = "root";
+                    $password = "";
+                    $dbname = "pa1.2";
+
+                    try {
+                        $conn = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
+                        $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+                        // SQL
+                        //$stmt = $conn->prepare("INSERT INTO motion_picture (id, name, production, budget, rating) VALUES (2, 'Indiana Jones', 'Miramax, 50000, 6.7)");
+                        $stmt = $conn->prepare("INSERT INTO Likes (uemail, mpid) VALUES ('$newLikeUID', $newLikeMPID)");
+                        $stmt->execute();
+
+
+
+                        // set the resulting array to associative
+                        $stmt->setFetchMode(PDO::FETCH_ASSOC);
+                        foreach(new TableRows(new RecursiveArrayIterator($stmt->fetchAll())) as $k=>$v) {
+                            echo $v;
+                        }
+                    }
+                    catch(PDOException $e) {
+                        echo "Error: " . $e->getMessage();
+                    }
+                    $conn = null;
+                    echo "</table>";
+                }
+                else
+                {
+                    $userID = 0;
+                }
+
             ?>
         </div>
     </body>

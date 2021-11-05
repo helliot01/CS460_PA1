@@ -671,7 +671,7 @@
                      $k= $_POST["k_rate"]; 
  
                      echo "<table class='table table-md table-bordered'>";
-                     echo "<thead class='thead-dark' style='text-align: center'>";
+                     echo "<thead class='thead-dark' style='text-align: center'>"; 
                      echo "<tr><th class='col-md-2'>Name</th><th class='col-md-2'>Movie Name</th><th class='col-md-2'>Role Count</th></thead>";
  
  
@@ -753,7 +753,12 @@
                         $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
                         
-                        $stmt = $conn->prepare("SELECT  ");
+                        $stmt = $conn->prepare("SELECT motion_picture.name, COUNT(DISTINCT Role.role_name) AS num_roles, COUNT(Role.pid) AS num_people
+                        FROM Role, motion_picture
+                        WHERE Role.mpid = motion_picture.id
+                        GROUP BY Role.mpid
+                        ORDER BY COUNT(DISTINCT Role.pid) DESC
+                        LIMIT 5");
                         $stmt->execute();
 
                         // set the resulting array to associative
